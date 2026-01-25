@@ -1,28 +1,33 @@
 // components/layouts/sidebar/Sidebar.tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import {useEffect, useState} from "react"
 import {
-    Calendar,
-    Users,
-    Home,
-    User,
-    Settings,
-    Package,
-    Activity,
     BarChart3,
-    CreditCard,
-    Stethoscope,
-    X,
+    CalendarDays,
     ChevronDown,
-    Menu
+    FileHeart,
+    FileSignature,
+    Home,
+    Menu,
+    Settings,
+    Shield,
+    HeartPulse,
+    TrendingUp,
+    User,
+    UserPlus,
+    Users2,
+    X,
+    LogOut
 } from "lucide-react"
-import { Button } from "@/components/ui-shadcn/button"
-import { cn } from "@/lib/utils"
-import { usePathname, useRouter } from "next/navigation"
+import {Button} from "@/components/ui-shadcn/button"
+import {cn} from "@/lib/utils"
+import {usePathname, useRouter} from "next/navigation"
 import ButtonLogout from "@/components/ui/ButtonLogout"
-import { useAuth } from "@/contexts/AuthContext"
-import { ScrollArea } from "@/components/ui-shadcn/scroll-area"
+import ButtonLogoutConfirm from "@/components/ui/ButtonLogoutConfirm"
+import {useAuth} from "@/lib/contexts/AuthContext"
+import {ScrollArea} from "@/components/ui-shadcn/scroll-area"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui-shadcn/avatar"
 
 type MenuItem = {
     id: string
@@ -41,98 +46,17 @@ type SubMenuItem = {
 }
 
 const menuItems: MenuItem[] = [
-    {
-        id: "dashboard",
-        label: "Dashboard",
-        icon: Home,
-        href: "/dashboard",
-        color: "text-blue-500"
-    },
-    {
-        id: "agenda",
-        label: "Agenda",
-        icon: Calendar,
-        href: "/agenda",
-        badge: 5,
-        color: "text-green-500"
-    },
-    {
-        id: "paciente",
-        label: "Pacientes",
-        icon: Users,
-        href: "/pacientes",
-        color: "text-purple-500"
-    },
-    {
-        id: "evolucao",
-        label: "Evolução",
-        icon: Activity,
-        color: "text-amber-500",
-        subItems: [
-            { label: "Histórico", href: "/evolucao/historico" },
-            { label: "Próximas", href: "/evolucao/proximas", badge: 3 },
-            { label: "Exames", href: "/evolucao/exames" }
-        ]
-    },
-    {
-        id: "tratamento",
-        label: "Tratamentos",
-        icon: Stethoscope,
-        color: "text-cyan-500",
-        subItems: [
-            { label: "Andamento", href: "/tratamento/andamento", badge: 2 },
-            { label: "Concluídos", href: "/tratamento/concluidos" },
-            { label: "Orçamentos", href: "/tratamento/orcamentos" }
-        ]
-    },
-    {
-        id: "plano-dental",
-        label: "Planos",
-        icon: CreditCard,
-        color: "text-pink-500",
-        subItems: [
-            { label: "Coberturas", href: "/plano/coberturas" },
-            { label: "Autorizações", href: "/plano/autorizacoes" },
-            { label: "Convênios", href: "/plano/convenios" }
-        ]
-    },
-    {
-        id: "dentista",
-        label: "Dentistas",
-        icon: User,
-        href: "/dentistas",
-        color: "text-indigo-500"
-    },
-    {
-        id: "estoque",
-        label: "Estoque",
-        icon: Package,
-        href: "/estoque",
-        color: "text-orange-500",
-        subItems: [
-            { label: "Produtos", href: "/estoque/produtos" },
-            { label: "Medicamentos", href: "/estoque/medicamentos" },
-            { label: "Fornecedores", href: "/estoque/fornecedores" }
-        ]
-    },
-    {
-        id: "financeiro",
-        label: "Financeiro",
-        icon: BarChart3,
-        color: "text-emerald-500",
-        subItems: [
-            { label: "Contas a Pagar", href: "/financeiro/pagar" },
-            { label: "Contas a Receber", href: "/financeiro/receber" },
-            { label: "Relatórios", href: "/financeiro/relatorios" }
-        ]
-    },
-    {
-        id: "configuracoes",
-        label: "Configurações",
-        icon: Settings,
-        href: "/configuracoes",
-        color: "text-gray-500"
-    }
+    { id: "dashboard", label: "Resumo", icon: Home, href: "/dashboard", color: "text-blue-500 dark:text-blue-400"},
+    { id: "agenda", label: "Agenda", icon: CalendarDays, href: "/agenda", color: "text-blue-500 dark:text-blue-400",},
+    { id: "pacientes", label: "Pacientes", icon: Users2, href: "/pacientes", color: "text-blue-500 dark:text-blue-400"},
+    { id: "dentistas", label: "Dentistas", icon: UserPlus, href: "/dentistas", color: "text-blue-500 dark:text-blue-400"},
+    { id: "evolucao-tratamento", label: "Evolução de Tratamento", icon: FileHeart, href: "/evolucoes-tratamento", color: "text-blue-500 dark:text-blue-400"},
+    { id: "plano-dental", label: "Planos Dentais", icon: Shield, href: "/planos-dentais", color: "text-blue-500 dark:text-blue-400"},
+    //{id: "procedimentos", label: "Procedimentos", icon: HeartPulse, href: "/procedimentos", color: "text-blue-500 dark:text-blue-400"},
+    //{id: "orcamentos", label: "Orçamentos", icon: FileSignature, href: "/orcamentos", color: "text-blue-500 dark:text-blue-400"},
+    //{id: "financeiro", label: "Financeiro", icon: TrendingUp, href: "/financeiro", color: "text-blue-500 dark:text-blue-400"},
+    //{id: "relatorios", label: "Relatórios", icon: BarChart3, href: "/relatorios", color: "text-blue-500 dark:text-blue-400"},
+    //{id: "configuracoes", label: "Configurações", icon: Settings, href: "/configuracoes", color: "text-blue-500 dark:text-blue-400"}
 ]
 
 interface SidebarProps {
@@ -195,65 +119,68 @@ export default function Sidebar({ isCollapsed, onCollapseChange }: SidebarProps)
         setSidebarOpen(false)
     }
 
+    const getInitials = (nome: string) => {
+        return nome
+            ?.split(' ')
+            .map(n => n[0])
+            .join('')
+            .substring(0, 2)
+            .toUpperCase() || 'US'
+    }
+
     return (
         <>
-            {/* Mobile Toggle Button */}
             <Button
                 variant="ghost"
                 size="icon"
                 className={cn(
                     "lg:hidden fixed top-4 left-4 z-50",
-                    "bg-card text-card-foreground shadow-lg hover:bg-accent",
+                    "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-lg hover:bg-blue-100 dark:hover:bg-blue-900/50",
+                    "border border-blue-200 dark:border-blue-700/50",
                     "transition-all duration-300"
                 )}
                 onClick={toggleMobileSidebar}
             >
-                {sidebarOpen ? (
-                    <X className="h-5 w-5" />
-                ) : (
-                    <Menu className="h-5 w-5" />
-                )}
+                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
 
-            {/* Sidebar Container */}
             <div className={cn(
-                "fixed lg:sticky top-0 left-0 h-screen z-40",
+                "fixed lg:sticky top-0 left-0 h-screen z-40 flex flex-col",
                 "transition-all duration-300 ease-in-out",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full",
                 isCollapsed ? "lg:w-20" : "lg:w-64",
                 "lg:translate-x-0"
             )}>
-                {/* Sidebar Content */}
                 <aside className={cn(
                     "h-full flex flex-col",
-                    "bg-sidebar text-sidebar-foreground",
-                    "border-r border-border"
+                    "bg-gradient-to-b from-blue-50 to-white dark:from-blue-950/50 dark:to-slate-900",
+                    "border-r border-blue-200 dark:border-blue-800/50",
+                    "shadow-lg shadow-blue-500/5 dark:shadow-blue-500/10"
                 )}>
-                    {/* Logo Area - Altura ajustada para alinhar com topbar */}
                     <div className={cn(
-                        "h-[73px] px-4 border-b border-border transition-all duration-300",
-                        "flex items-center flex-shrink-0"
+                        "h-[73px] px-4 border-b border-blue-200 dark:border-blue-800/50 transition-all duration-300",
+                        "flex items-center flex-shrink-0",
+                        "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 dark:from-blue-800 dark:via-blue-700 dark:to-blue-600"
                     )}>
                         {!isCollapsed ? (
                             <div className="flex items-center gap-3 w-full">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg flex-shrink-0">
-                                    <span className="text-primary-foreground font-bold text-xl">CE</span>
+                                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg flex-shrink-0">
+                                    <HeartPulse className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h1 className="text-lg font-bold tracking-tight truncate">Consultório</h1>
-                                    <p className="text-xs text-muted-foreground mt-0.5 truncate">Danilo & Eduarda</p>
+                                    <h1 className="text-lg font-bold tracking-tight truncate text-white">Consultório</h1>
+                                    <p className="text-xs text-blue-100/80 mt-0.5 truncate">Odonto Excellence</p>
                                 </div>
                             </div>
                         ) : (
                             <div className="flex items-center justify-center w-full">
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                                    <span className="text-primary-foreground font-bold text-lg">CE</span>
+                                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
+                                    <HeartPulse className="h-5 w-5 text-white" />
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Menu Area */}
                     <ScrollArea className="flex-1 p-3">
                         <nav className="space-y-1">
                             {menuItems.map((item) => {
@@ -267,53 +194,44 @@ export default function Sidebar({ isCollapsed, onCollapseChange }: SidebarProps)
                                             <Button
                                                 variant="ghost"
                                                 className={cn(
-                                                    "w-full justify-between hover:bg-sidebar-accent h-10",
+                                                    "w-full justify-between hover:bg-blue-100 dark:hover:bg-blue-900/30 h-10",
                                                     "transition-all duration-200 group",
+                                                    "border border-transparent hover:border-blue-200 dark:hover:border-blue-700/50",
                                                     isCollapsed ? "px-3 justify-center" : "px-3",
-                                                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                                    isActive && "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600"
                                                 )}
                                                 onClick={() => toggleMenu(item.id)}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="relative">
-                                                        <Icon className={cn("w-4 h-4", item.color)} />
-                                                        {item.badge && !isCollapsed && (
-                                                            <span className="absolute -top-1 -right-1 w-4 h-4 text-xs bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                                                                {item.badge}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                    <Icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", item.color)} />
                                                     {!isCollapsed && (
-                                                        <span className="font-medium text-sm">{item.label}</span>
+                                                        <span className="font-medium text-sm text-blue-900 dark:text-blue-100">{item.label}</span>
                                                     )}
                                                 </div>
                                                 {!isCollapsed && item.subItems && (
                                                     <ChevronDown className={cn(
-                                                        "w-4 h-4 transition-transform duration-200",
+                                                        "w-4 h-4 transition-transform duration-200 text-blue-500 dark:text-blue-400",
                                                         isOpen && "rotate-180"
                                                     )} />
                                                 )}
                                             </Button>
 
                                             {!isCollapsed && isOpen && (
-                                                <div className="ml-8 mt-1 mb-2 space-y-1 border-l border-border pl-3 animate-in slide-in-from-left-2">
+                                                <div className="ml-8 mt-1 mb-2 space-y-1 border-l border-blue-300 dark:border-blue-700 pl-3">
                                                     {item.subItems.map((subItem, index) => (
                                                         <Button
                                                             key={index}
                                                             variant="ghost"
                                                             className={cn(
                                                                 "w-full justify-start h-8 text-sm px-3",
-                                                                "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                                                                pathname === subItem.href && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                                                "hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-300",
+                                                                "border border-transparent hover:border-blue-200 dark:hover:border-blue-700/30",
+                                                                pathname === subItem.href &&
+                                                                "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600"
                                                             )}
                                                             onClick={() => navigateTo(subItem.href)}
                                                         >
-                                                            <span className="truncate">{subItem.label}</span>
-                                                            {subItem.badge && (
-                                                                <span className="ml-auto text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
-                                                                    {subItem.badge}
-                                                                </span>
-                                                            )}
+                                                            <span className="truncate text-blue-800 dark:text-blue-200">{subItem.label}</span>
                                                         </Button>
                                                     ))}
                                                 </div>
@@ -327,67 +245,43 @@ export default function Sidebar({ isCollapsed, onCollapseChange }: SidebarProps)
                                         key={item.id}
                                         variant="ghost"
                                         className={cn(
-                                            "w-full justify-start hover:bg-sidebar-accent h-10",
+                                            "w-full justify-start hover:bg-blue-100 dark:hover:bg-blue-900/30 h-10",
                                             "transition-all duration-200 group",
+                                            "border border-transparent hover:border-blue-200 dark:hover:border-blue-700/50",
                                             isCollapsed ? "px-3 justify-center" : "px-3",
-                                            isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                            isActive &&
+                                            "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600 shadow-sm"
                                         )}
                                         onClick={() => navigateTo(item.href!)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="relative">
-                                                <Icon className={cn("w-4 h-4", item.color)} />
-                                                {item.badge && !isCollapsed && (
-                                                    <span className="absolute -top-1 -right-1 w-4 h-4 text-xs bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                                                        {item.badge}
-                                                    </span>
-                                                )}
-                                            </div>
+                                            <Icon className={cn(
+                                                "w-4 h-4 transition-transform group-hover:scale-110",
+                                                item.color,
+                                                isActive && "text-blue-600 dark:text-blue-400"
+                                            )} />
                                             {!isCollapsed && (
-                                                <span className="font-medium text-sm">{item.label}</span>
+                                                <span className={cn(
+                                                    "font-medium text-sm",
+                                                    "text-blue-900 dark:text-blue-100",
+                                                    isActive && "font-semibold text-blue-800 dark:text-blue-50"
+                                                )}>{item.label}</span>
                                             )}
                                         </div>
-                                        {!isCollapsed && item.badge && (
-                                            <span className="ml-auto text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
-                                                {item.badge}
-                                            </span>
-                                        )}
                                     </Button>
                                 )
                             })}
                         </nav>
                     </ScrollArea>
-
-                    {/* Bottom Area */}
-                    <div className={cn(
-                        "w-full p-3 border-t border-border",
-                        "bg-sidebar-accent/30 flex-shrink-0",
-                        "transition-all duration-300"
-                    )}>
-                        <ButtonLogout
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                "w-full h-10",
-                                "hover:bg-destructive/10 hover:text-destructive",
-                                "transition-all duration-200",
-                                isCollapsed ? "justify-center px-0" : "justify-start px-3"
-                            )}
-                            showIcon={true}
-                            showText={!isCollapsed}
-                            showLoading={true}
-                        />
-                    </div>
                 </aside>
             </div>
 
-            {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden animate-in fade-in duration-300"
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
         </>
     )
-}285
+}

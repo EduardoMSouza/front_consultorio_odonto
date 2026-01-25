@@ -2,11 +2,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Importa as configurações do .env.local
+const COOKIE_AUTH_NAME = process.env.NEXT_PUBLIC_COOKIE_AUTH_NAME || 'isAuthenticated';
+
 // Rotas públicas (acesso sem autenticação)
 const PUBLIC_ROUTES = [
     '/',
     '/login',
-    //'/recuperar-senha',
     '/api/auth/login',
     '/api/auth/refresh',
 ];
@@ -17,7 +19,6 @@ const PROTECTED_ROUTES = [
     '/dentistas',
     '/pacientes',
     '/planos-dentais',
-    // Adicione outras rotas protegidas aqui
 ];
 
 export function middleware(request: NextRequest) {
@@ -33,8 +34,8 @@ export function middleware(request: NextRequest) {
         pathname === route || pathname.startsWith(`${route}/`)
     );
 
-    // Obtém cookie de autenticação
-    const isAuthenticated = request.cookies.get('isAuthenticated')?.value === 'true';
+    // Obtém cookie de autenticação usando o nome do .env.local
+    const isAuthenticated = request.cookies.get(COOKIE_AUTH_NAME)?.value === 'true';
 
     // Se estiver autenticado e tentar acessar login, redireciona para dashboard
     if (isAuthenticated && pathname === '/login') {

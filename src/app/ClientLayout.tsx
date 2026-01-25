@@ -74,7 +74,7 @@ export default function ClientLayout({
                 />
 
                 {/* Main content ocupa todo espaço restante */}
-                <main className="flex-1 p-4 md:p-6 overflow-auto">
+                <main className="flex-1  overflow-auto">
                     {children}
                 </main>
             </div>

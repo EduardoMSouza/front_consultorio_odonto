@@ -1,115 +1,55 @@
-// app/pacientes/page.tsx
+// app/pacientes/page.tsx (atualizado)
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui-shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/ui-shadcn/card';
 import { Button } from '@/components/ui-shadcn/button';
-import { Input } from '@/components/ui-shadcn/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui-shadcn/table';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui-shadcn/dropdown-menu';
-import { Badge } from '@/components/ui-shadcn/badge';
-import { Skeleton } from '@/components/ui-shadcn/skeleton';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui-shadcn/alert-dialog';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui-shadcn/pagination';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui-shadcn/select';
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Eye, Filter, RefreshCw } from 'lucide-react';
-import { PacienteService } from '@/services/paciente.service';
-import {PacienteResponse, PacienteResumoResponse, PageResponse} from '@/models/paciente.types';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { usePacientes, usePaciente } from '@/lib/hooks/usePaciente';
+import { PacienteStats } from '@/components/core/paciente/PacienteStats';
+import {PacienteList} from "@/components/core/paciente/PacienteList";
+import {PacienteSearch} from "@/components/core/paciente/PacienteSearch";
+
 
 export default function PacientesPage() {
     const router = useRouter();
-    const [pacientes, setPacientes] = useState<PacienteResumoResponse[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { pacientes, paginacao, loading, listarResumo, buscarPorNome, listarAtivos } = usePacientes();
+    const { excluir, ativar, inativar } = usePaciente();
+
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [totalElements, setTotalElements] = useState(0);
     const pageSize = 10;
 
+    // Usar useMemo para criar uma função estável
     const loadPacientes = useCallback(async () => {
         try {
-            setIsLoading(true);
-            let response: PageResponse<PacienteResumoResponse>;
-
             if (search.trim()) {
-                response = await PacienteService.buscarPorNomePaginado(search, page, pageSize);
+                await buscarPorNome(search, page, pageSize);
             } else if (statusFilter === 'active') {
-                response = await PacienteService.listarAtivosPaginado(page, pageSize);
-            } else if (statusFilter === 'inactive') {
-                // Note: You might need to implement a method for inactive patients with pagination
-                const allPatients = await PacienteService.listarResumoPaginado(page, pageSize);
-                response = {
-                    ...allPatients,
-                    content: allPatients.content.filter(p => !p.ativo)
-                };
+                await listarAtivos(page, pageSize);
             } else {
-                response = await PacienteService.listarResumoPaginado(page, pageSize);
+                await listarResumo(page, pageSize);
             }
-
-            setPacientes(response.content);
-            setTotalPages(response.totalPages);
-            setTotalElements(response.totalElements);
         } catch (error) {
             toast.error('Erro ao carregar pacientes');
             console.error(error);
-        } finally {
-            setIsLoading(false);
         }
-    }, [search, statusFilter, page]);
+    }, [search, statusFilter, page, pageSize]);
 
+    // Usar useEffect com debounce para evitar loops
     useEffect(() => {
-        loadPacientes();
+        const timer = setTimeout(() => {
+            loadPacientes();
+        }, 300); // Debounce de 300ms
+
+        return () => clearTimeout(timer);
     }, [loadPacientes]);
-
-    const handleEdit = (id: number) => {
-        router.push(`/pacientes/${id}/editar`);
-    };
-
-    const handleView = (id: number) => {
-        router.push(`/pacientes/${id}`);
-    };
 
     const handleDelete = async (id: number) => {
         try {
-            await PacienteService.excluir(id);
+            await excluir(id);
             toast.success('Paciente excluído com sucesso');
             loadPacientes();
         } catch (error) {
@@ -121,10 +61,10 @@ export default function PacientesPage() {
     const handleToggleStatus = async (id: number, isActive: boolean) => {
         try {
             if (isActive) {
-                await PacienteService.inativar(id);
+                await inativar(id);
                 toast.success('Paciente inativado com sucesso');
             } else {
-                await PacienteService.ativar(id);
+                await ativar(id);
                 toast.success('Paciente ativado com sucesso');
             }
             loadPacientes();
@@ -134,242 +74,71 @@ export default function PacientesPage() {
         }
     };
 
-    const formatCPF = (cpf?: string) => {
-        if (!cpf) return '-';
-        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    };
-
-    const formatDate = (dateString: string) => {
-        try {
-            return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
-        } catch {
-            return dateString;
-        }
-    };
-
-    const calculateAge = (birthDate: string) => {
-        const today = new Date();
-        const birth = new Date(birthDate);
-        let age = today.getFullYear() - birth.getFullYear();
-        const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-            age--;
-        }
-        return age;
-    };
-
     return (
         <div className="container mx-auto py-10">
-            <div className="flex flex-col space-y-8">
+            {/* Estatísticas */}
+            <div className="mb-8">
+                <PacienteStats />
+            </div>
+
+            <div className="space-y-6">
+                {/* Cabeçalho */}
                 <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Pacientes</h1>
                         <p className="text-muted-foreground">
-                            Gerencie os pacientes do sistema ({totalElements} registros)
+                            Gerencie os pacientes do sistema ({paginacao.totalElements} registros)
                         </p>
                     </div>
                     <Button onClick={() => router.push('/pacientes/novo')}>
-                        <Plus className="mr-2 h-4 w-4" />
                         Novo Paciente
                     </Button>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <div className="flex flex-col md:flex-row gap-4 justify-between">
-                            <div className="flex-1">
-                                <div className="relative">
-                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Buscar por nome..."
-                                        className="pl-8"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <Filter className="mr-2 h-4 w-4" />
-                                        <SelectValue placeholder="Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos</SelectItem>
-                                        <SelectItem value="active">Ativos</SelectItem>
-                                        <SelectItem value="inactive">Inativos</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Button variant="outline" onClick={loadPacientes}>
-                                    <RefreshCw className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
+                        <PacienteSearch
+                            searchTerm={search}
+                            onSearchChange={setSearch}
+                            statusFilter={statusFilter}
+                            onStatusFilterChange={setStatusFilter}
+                            onRefresh={loadPacientes}
+                            placeholder="Buscar por nome..."
+                        />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? (
-                            <div className="space-y-3">
-                                {[...Array(5)].map((_, i) => (
-                                    <Skeleton key={i} className="h-12 w-full" />
-                                ))}
-                            </div>
-                        ) : pacientes.length === 0 ? (
-                            <div className="text-center py-10">
-                                <p className="text-muted-foreground">Nenhum paciente encontrado</p>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Prontuário</TableHead>
-                                                <TableHead>Nome</TableHead>
-                                                <TableHead>CPF</TableHead>
-                                                <TableHead>Idade</TableHead>
-                                                <TableHead>Convênio</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">Ações</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {pacientes.map((paciente) => (
-                                                <TableRow key={paciente.id}>
-                                                    <TableCell className="font-medium">
-                                                        {paciente.prontuarioNumero}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="font-medium">{paciente.nome}</div>
-                                                        <div className="text-sm text-muted-foreground">
-                                                            {paciente.telefone || 'Sem telefone'}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {formatCPF(paciente.cpf) || '-'}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {paciente.idade || calculateAge(paciente.dataNascimento)} anos
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {paciente.convenio ? (
-                                                            <div>
-                                                                <div>{paciente.convenio}</div>
-                                                                {paciente.numeroInscricaoConvenio && (
-                                                                    <div className="text-sm text-muted-foreground">
-                                                                        Nº: {paciente.numeroInscricaoConvenio}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-muted-foreground">Particular</span>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex flex-col gap-1">
-                                                            <Badge variant={paciente.ativo ? "default" : "secondary"}>
-                                                                {paciente.ativo ? 'Ativo' : 'Inativo'}
-                                                            </Badge>
-                                                            <Badge variant={paciente.status ? "outline" : "destructive"}>
-                                                                {paciente.status ? 'Atendimento Ativo' : 'Atendimento Inativo'}
-                                                            </Badge>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                    <span className="sr-only">Abrir menu</span>
-                                                                    <MoreHorizontal className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                                <DropdownMenuItem onClick={() => handleView(paciente.id)}>
-                                                                    <Eye className="mr-2 h-4 w-4" />
-                                                                    Visualizar
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => handleEdit(paciente.id)}>
-                                                                    <Edit className="mr-2 h-4 w-4" />
-                                                                    Editar
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
-                                                                <DropdownMenuItem
-                                                                    onClick={() => handleToggleStatus(paciente.id, paciente.ativo)}
-                                                                >
-                                                                    {paciente.ativo ? 'Inativar' : 'Ativar'}
-                                                                </DropdownMenuItem>
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <DropdownMenuItem
-                                                                            className="text-red-600"
-                                                                            onSelect={(e) => e.preventDefault()}
-                                                                        >
-                                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                                            Excluir
-                                                                        </DropdownMenuItem>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader>
-                                                                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                                                            <AlertDialogDescription>
-                                                                                Tem certeza que deseja excluir o paciente {paciente.nome}?
-                                                                                Esta ação não pode ser desfeita.
-                                                                            </AlertDialogDescription>
-                                                                        </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                            <AlertDialogAction
-                                                                                onClick={() => handleDelete(paciente.id)}
-                                                                                className="bg-red-600 hover:bg-red-700"
-                                                                            >
-                                                                                Excluir
-                                                                            </AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                        <PacienteList
+                            pacientes={pacientes}
+                            loading={loading}
+                            onView={(id) => router.push(`/pacientes/${id}`)}
+                            onEdit={(id) => router.push(`/pacientes/${id}/editar`)}
+                            onDelete={handleDelete}
+                            onToggleStatus={handleToggleStatus}
+                        />
 
-                                {totalPages > 1 && (
-                                    <div className="mt-4">
-                                        <Pagination>
-                                            <PaginationContent>
-                                                <PaginationItem>
-                                                    <PaginationPrevious
-                                                        onClick={() => setPage(Math.max(0, page - 1))}
-                                                        className={page === 0 ? 'pointer-events-none opacity-50' : ''}
-                                                    />
-                                                </PaginationItem>
-                                                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                                                    const pageNum = i;
-                                                    return (
-                                                        <PaginationItem key={i}>
-                                                            <PaginationLink
-                                                                onClick={() => setPage(pageNum)}
-                                                                isActive={page === pageNum}
-                                                            >
-                                                                {pageNum + 1}
-                                                            </PaginationLink>
-                                                        </PaginationItem>
-                                                    );
-                                                })}
-                                                <PaginationItem>
-                                                    <PaginationNext
-                                                        onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                                                        className={page >= totalPages - 1 ? 'pointer-events-none opacity-50' : ''}
-                                                    />
-                                                </PaginationItem>
-                                            </PaginationContent>
-                                        </Pagination>
-                                    </div>
-                                )}
-                            </>
+                        {/* Paginação simplificada */}
+                        {paginacao.totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Página {page + 1} de {paginacao.totalPages}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                    >
+                                        Anterior
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setPage(p => Math.min(paginacao.totalPages - 1, p + 1))}
+                                        disabled={page >= paginacao.totalPages - 1}
+                                    >
+                                        Próxima
+                                    </Button>
+                                </div>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

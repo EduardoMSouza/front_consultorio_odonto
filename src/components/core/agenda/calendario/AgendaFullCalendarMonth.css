@@ -1,0 +1,225 @@
+/* components/core/agenda/calendario/AgendaFullCalendarMonth.css */
+
+/* Container principal */
+.agenda-month-container .fc {
+    font-family: inherit;
+}
+
+/* Estrutura da grade */
+.agenda-month-container .fc-theme-standard td,
+.agenda-month-container .fc-theme-standard th {
+    border-color: #e5e7eb;
+}
+
+/* Cabeçalhos dos dias da semana */
+.agenda-month-container .fc-col-header-cell {
+    background-color: #f9fafb;
+    padding: 10px 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.agenda-month-container .fc-col-header-cell-cushion {
+    color: #374151;
+}
+
+/* Células dos dias */
+.agenda-month-container .fc-daygrid-day {
+    min-height: 100px;
+    background-color: white;
+    transition: background-color 0.2s ease;
+}
+
+.agenda-month-container .fc-daygrid-day:hover {
+    background-color: #f8fafc;
+}
+
+.agenda-month-container .fc-daygrid-day-frame {
+    padding: 8px;
+}
+
+/* Número do dia */
+.agenda-month-container .fc-daygrid-day-number {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    padding: 4px 6px;
+    border-radius: 4px;
+    float: left;
+}
+
+.agenda-month-container .fc-day-today .fc-daygrid-day-number {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Dias de outros meses */
+.agenda-month-container .fc-day-other {
+    background-color: #f9fafb;
+}
+
+.agenda-month-container .fc-day-other .fc-daygrid-day-number {
+    color: #9ca3af;
+    opacity: 0.7;
+}
+
+/* Eventos (agendamentos) */
+.agenda-month-container .fc-event {
+    border: none !important;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.15s ease;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.agenda-month-container .fc-event:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.agenda-month-container .fc-event-main {
+    color: #ffffff;
+}
+
+.agenda-month-container .fc-event-time {
+    font-weight: 700;
+    font-size: 0.7rem;
+    opacity: 0.9;
+    margin-right: 4px;
+}
+
+.agenda-month-container .fc-event-title {
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* Indicador "mais eventos" */
+.agenda-month-container .fc-daygrid-more-link {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    padding: 2px 4px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.agenda-month-container .fc-daygrid-more-link:hover {
+    text-decoration: underline;
+    background-color: #eff6ff;
+    border-radius: 2px;
+}
+
+/* Esconde controles nativos */
+.agenda-month-container .fc-button,
+.agenda-month-container .fc-header-toolbar {
+    display: none !important;
+}
+
+/* Destaque de seleção */
+.agenda-month-container .fc-highlight {
+    background-color: rgba(59, 130, 246, 0.08);
+    border-radius: 4px;
+}
+
+/* Indicador de hoje */
+.agenda-month-container .fc-day-today {
+    background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Fim de semana diferenciado */
+.agenda-month-container .fc-day-sat,
+.agenda-month-container .fc-day-sun {
+    background-color: #fafafa;
+}
+
+.agenda-month-container .fc-day-sat .fc-daygrid-day-number,
+.agenda-month-container .fc-day-sun .fc-daygrid-day-number {
+    color: #dc2626;
+}
+
+/* Eventos compactos para visualização mensal */
+.agenda-month-container .fc-daygrid-event {
+    margin: 1px 0;
+}
+
+.agenda-month-container .fc-daygrid-event-dot {
+    display: none;
+}
+
+/* Popover de mais eventos */
+.agenda-month-container .fc-more-popover {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.agenda-month-container .fc-more-popover-header {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+    .agenda-month-container .fc-col-header-cell {
+        padding: 8px 4px;
+        font-size: 0.7rem;
+    }
+
+    .agenda-month-container .fc-daygrid-day {
+        min-height: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .agenda-month-container .fc-col-header-cell {
+        padding: 6px 2px;
+        font-size: 0.65rem;
+    }
+
+    .agenda-month-container .fc-daygrid-day {
+        min-height: 70px;
+    }
+
+    .agenda-month-container .fc-daygrid-day-number {
+        font-size: 0.75rem;
+        padding: 2px 4px;
+    }
+
+    .agenda-month-container .fc-event {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+    }
+}
+
+@media (max-width: 640px) {
+    .agenda-month-container .fc-col-header-cell {
+        font-size: 0.6rem;
+        padding: 4px 1px;
+    }
+
+    .agenda-month-container .fc-daygrid-day {
+        min-height: 60px;
+    }
+
+    .agenda-month-container .fc-event {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+
+    .agenda-month-container .fc-daygrid-day-number {
+        font-size: 0.7rem;
+    }
+}

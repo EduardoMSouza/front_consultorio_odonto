@@ -5,7 +5,8 @@ import { LogOut } from "lucide-react"
 import { Button } from "@/components/ui-shadcn/button"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { useAuth } from "@/contexts/AuthContext"
+import {useAuth} from "@/lib/contexts/AuthContext";
+
 
 interface ButtonLogoutProps {
     className?: string

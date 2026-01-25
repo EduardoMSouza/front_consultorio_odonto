@@ -3,9 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { authService } from '@/services/auth.service';
 import Link from 'next/link';
+import {useAuth} from "@/lib/contexts/AuthContext";
 
 export default function LoginPage() {
     const [login, setLogin] = useState('');

@@ -1,9 +1,9 @@
 // app/layout.tsx
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
 import './globals.css';
 import React from "react";
-import RouteGuard from "@/guard/RouteGuard";
+import RouteGuard from "@/lib/guard/RouteGuard";
 
 const inter = Inter({
     subsets: ['latin'],
